@@ -18,23 +18,13 @@ if h<w
     img = imresize(img, [h h]);  
     fprintf("图像长宽不一样,图像可能失真");
 end
-k=20;%产生k个伪随机数
+k=13;%分为13段
 
 [h,w]=size(img);
 all=h;%一列的长度
-n=zeros(1,k);
-n=randperm(all-1,k-1);
-n(k)=all;
-n=sort(n);%和为all，长度为k的伪随机序列
-N1=zeros(1,k);
-for i=1:k
-    if i==1
-        N1(i)=n(i);
-        continue;
-    end
-    N1(i)=n(i)-n(i-1);
-end
-n=sort(N1);
+n=[2,5,10,16,25,32,40,50,80,80,100,160,200];%以该序列作为和迭代次数作为密钥
+%n需要满足sum(n)=h&&h%n==0;
+%本次加密以800*800灰度图为例
 q=zeros(1,k);
 for i=1:k
     q(i)=all/n(i);
@@ -45,13 +35,13 @@ for i=1:k+1
         N(i)=1;
         continue;
     end
-    N(i)=N(i-1)+n(i-1);%N(i)=n(0)+n(1)+...+n(i);
+    N(i)=N(i-1)+n(i-1);%N(i)=n(1)+...+n(i);
 end
 %置乱与复原的共同参数,就相当于密码，有了这几个参数，图片就可以复原
 
 
 pp=10;%迭代次数
-key=[0.343,0.432,0.63,3.769,3.82,3.85,1];%logistic扩散参数(自定义),3.5699456...<u<=4,序列成混沌
+key=[0.343,0.432,0.63,3.769,3.82,3.85];%logistic扩散参数(自定义),3.5699456...<u<=4,序列成混沌
 x1=key(1);
 x2=key(2);
 x3=key(3);%x(n+1)=u*x(n)(1-xn),x1,x2,x3为x(0)
@@ -81,9 +71,7 @@ for i=1:pp
             r2=fix(x2*255);
             r3=fix(x3*255);
             yy=(q(index)*(y-N(index))+mod(x,q(index))+1);
-            yy=fix(yy);
             xx=((x-mod(x,q(index)))/q(index)+N(index)+1);
-            xx=fix(xx);
             imgn(yy,xx)=mod((bitxor((r1+r2),r3)+img(y,x)),256);
         end
         x1=key(1);
